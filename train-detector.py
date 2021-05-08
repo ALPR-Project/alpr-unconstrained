@@ -1,10 +1,11 @@
 
+import time
 import sys
 import numpy as np
 import cv2
 import argparse
 import keras
-
+import tensorflow as tf
 from random import choice
 from os.path import isfile, isdir, basename, splitext
 from os import makedirs
@@ -15,9 +16,10 @@ from src.loss import loss
 from src.utils import image_files_from_folder, show
 from src.sampler import augment_sample, labels2output_map
 from src.data_generator import DataGenerator
+from src.evaluation_lpd import validar_lp
+from keras.callbacks import TensorBoard
 
 from pdb import set_trace as pause
-
 
 def load_network(modelpath,input_dim):
 
@@ -45,6 +47,13 @@ def process_data_item(data_item,dim,model_stride):
 	XX,llp,pts = augment_sample(data_item[0],data_item[1].pts,dim)
 	YY = labels2output_map(llp,pts,dim,model_stride)
 	return XX,YY
+
+
+def salvar_imagem(imagem_array):
+	ts = time.time()
+	nome_arquivo = str(ts).replace('.', '')
+	caminho_arquivo ='images_cropped/'+nome_arquivo+'.jpg'
+	cv2.imwrite(caminho_arquivo, imagem_array)
 
 
 if __name__ == '__main__':
@@ -76,7 +85,7 @@ if __name__ == '__main__':
 	opt = getattr(keras.optimizers,args.optimizer)(lr=args.learning_rate)
 	model.compile(loss=loss, optimizer=opt)
 
-	print 'Checking input directory...'
+	print('Checking input directory...')
 	Files = image_files_from_folder(train_dir)
 
 	Data = []
@@ -87,7 +96,7 @@ if __name__ == '__main__':
 			I = cv2.imread(file)
 			Data.append([I,L[0]])
 
-	print '%d images with labels found' % len(Data)
+	print('%d images with labels found' % len(Data))
 
 	dg = DataGenerator(	data=Data, \
 						process_data_item_func=lambda x: process_data_item(x,dim,model_stride),\
@@ -99,27 +108,47 @@ if __name__ == '__main__':
 	dg.start()
 
 	Xtrain = np.empty((batch_size,dim,dim,3),dtype='single')
-	Ytrain = np.empty((batch_size,dim/model_stride,dim/model_stride,2*4+1))
+	Ytrain = np.empty((batch_size, int(dim / model_stride), int(dim / model_stride), 2 * 4 + 1))
+	# Ytrain = np.empty((batch_size,dim/model_stride,dim/model_stride,2*4+1))
 
 	model_path_backup = '%s/%s_backup' % (outdir,netname)
 	model_path_final  = '%s/%s_final'  % (outdir,netname)
 
+	# summary_writer = tf.summary.FileWriter('/media/jones/dataset/alpr/lotes_rotulacao/l1/logdir', sess.graph)
+	summary_writer = tf.summary.FileWriter('/media/jones/dataset/alpr/lotes_rotulacao/l1/logdir')
+
+	# pylint: disable=maybe-no-member
+	# summary.value.add(tag='validation_ds/accuracy', simple_value=accuracy_val)
+	# summary_writer.add_summary(summary, step)
+	total_loss_it = 0
 	for it in range(iterations):
 
-		print 'Iter. %d (of %d)' % (it+1,iterations)
+		print('Iter. %d (of %d)' % (it+1,iterations))
 
 		Xtrain,Ytrain = dg.get_batch(batch_size)
 		train_loss = model.train_on_batch(Xtrain,Ytrain)
-
-		print '\tLoss: %f' % train_loss
-
+		samples_imgs_denormalized = Xtrain * 255.
+		samples_imgs_denormalized = samples_imgs_denormalized.astype('int')
+		# for indice_image, image_sample_nd in enumerate(samples_imgs_denormalized):
+		# 	print(str(indice_image))
+		print('\tLoss: %f' % train_loss)
+		total_loss_it += train_loss
 		# Save model every 1000 iterations
-		if (it+1) % 1000 == 0:
-			print 'Saving model (%s)' % model_path_backup
+		if (it+1) % 100 == 0:
+			mean_loss = total_loss_it/100
+			print('it %i , mean loss %f ' % (it, mean_loss))
+			summary = tf.Summary()
+			mAP_pascal, mAP_pascal_all_points, mAP_coco =  validar_lp('/media/jones/dataset/alpr/lotes_rotulacao/l1/amostras_l5',
+					   'lote1_1703_5_gt_clean.xml', '/media/jones/dataset/alpr/lotes_rotulacao/l1/saida_treinamento', model)
+			print('Saving model (%s)' % model_path_backup)
+			summary.value.add(tag='train_loss', simple_value=mean_loss)
+			summary.value.add(tag='mAP_pascal', simple_value=mAP_pascal)
+			summary_writer.add_summary(summary, int(it + 1 / 100))
 			save_model(model,model_path_backup)
+			total_loss_it = 0
 
-	print 'Stopping data generator'
+	print('Stopping data generator')
 	dg.stop()
 
-	print 'Saving model (%s)' % model_path_final
+	print('Saving model (%s)' % model_path_final)
 	save_model(model,model_path_final)
