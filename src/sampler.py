@@ -61,7 +61,7 @@ def flip_image_and_pts(I,pts):
 
 def augment_sample(I,pts,dim):
 
-	maxsum,maxangle = 120,np.array([80.,80.,45.])
+	maxsum,maxangle = 120,np.array([30.,30.,45.])
 	angles = np.random.rand(3)*maxangle
 	if angles.sum() > maxsum:
 		angles = (angles/angles.sum())*(maxangle/maxangle.sum())
@@ -94,8 +94,8 @@ def augment_sample(I,pts,dim):
 
 	pts = np.array(pts)
 
-	if random.random() > .5:
-		Iroi,pts = flip_image_and_pts(Iroi,pts)
+	# if random.random() > .5:
+	# 	Iroi,pts = flip_image_and_pts(Iroi,pts)
 
 	tl,br = pts.min(1),pts.max(1)
 	llp = Label(0,tl,br)

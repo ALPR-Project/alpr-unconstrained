@@ -4,6 +4,7 @@ import sys
 import numpy as np
 import cv2
 import argparse
+from keras import backend as K
 import keras
 import tensorflow as tf
 from random import choice
@@ -118,17 +119,21 @@ if __name__ == '__main__':
 	model_path_final  = '%s/%s_final'  % (outdir,netname)
 
 	# summary_writer = tf.summary.FileWriter('/media/jones/dataset/alpr/lotes_rotulacao/l1/logdir', sess.graph)
-	summary_writer = tf.summary.FileWriter('/media/jones/dataset/alpr/lotes_rotulacao/l1/logdir')
+	summary_writer = tf.summary.FileWriter('/media/jones/datarec/lpr/fontes/deteccao_placa/logs5')
 
 	# pylint: disable=maybe-no-member
 	# summary.value.add(tag='validation_ds/accuracy', simple_value=accuracy_val)
 	# summary_writer.add_summary(summary, step)
 	total_loss_it = 0
 	print(' (start iterating) qtde de samples no buffer: %d ' % dg._count)
+	lr_ajustado = False
 	for it in range(iterations):
 
 		print('Iter. %d (of %d)' % (it+1,iterations))
-
+		print("Learning rate: ", K.get_value(model.optimizer.lr))
+		if not lr_ajustado and it > 0 and it % 10000 == 0:
+			K.set_value(model.optimizer.lr, args.learning_rate / 10)
+			lr_ajustado = True
 		Xtrain,Ytrain = dg.get_batch(batch_size)
 		print('qtde de samples no buffer: %d ' % dg._count)
 		train_loss = model.train_on_batch(Xtrain,Ytrain)
@@ -143,7 +148,7 @@ if __name__ == '__main__':
 			mean_loss = total_loss_it/1000
 			print('it %i , mean loss %f ' % (it, mean_loss))
 			summary = tf.Summary()
-			mAP_pascal, mAP_pascal_all_points, mAP_coco =  validar_lp_model(validate_dir,'/media/jones/dataset/alpr/lotes_rotulacao/validation_output', model)
+			mAP_pascal, mAP_pascal_all_points, mAP_coco =  validar_lp_model(validate_dir,'/media/jones/datarec/lpr/dataset/validate_output_ceia', model)
 			print('Saving model (%s)' % model_path_backup)
 			summary.value.add(tag='train_loss', simple_value=mean_loss)
 			summary.value.add(tag='mAP_pascal', simple_value=mAP_pascal)
