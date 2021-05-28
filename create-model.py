@@ -2,7 +2,7 @@
 import sys
 import keras
 
-from keras.layers import Conv2D, MaxPooling2D, BatchNormalization, Add, Activation, Concatenate, Input
+from keras.layers import Conv2D, MaxPooling2D, BatchNormalization, Add, Activation, Concatenate, Input, Dropout
 from keras.models import Model
 from keras.applications.mobilenet import MobileNet
 
@@ -33,24 +33,28 @@ def end_block(x):
 	return Concatenate(3)([xprobs,xbbox])
 
 
-def create_model_eccv():
+def create_model_ceia_eccv():
 	
 	input_layer = Input(shape=(None,None,3),name='input')
 
 	x = conv_batch(input_layer, 16, 3)
 	x = conv_batch(x, 16, 3)
 	x = MaxPooling2D(pool_size=(2,2))(x)
+	x = Dropout(0.2)(x)
 	x = conv_batch(x, 32, 3)
 	x = res_block(x, 32)
 	x = MaxPooling2D(pool_size=(2,2))(x)
+	x = Dropout(0.2)(x)
 	x = conv_batch(x, 64, 3)
 	x = res_block(x,64)
 	x = res_block(x,64)
 	x = MaxPooling2D(pool_size=(2,2))(x)
+	x = Dropout(0.2)(x)
 	x = conv_batch(x, 64, 3)
 	x = res_block(x,64)
 	x = res_block(x,64)
 	x = MaxPooling2D(pool_size=(2,2))(x)
+	# x = Dropout(0.2)(x)
 	x = conv_batch(x, 128, 3)
 	x = res_block(x,128)
 	x = res_block(x,128)
@@ -60,6 +64,34 @@ def create_model_eccv():
 	x = end_block(x)
 
 	return Model(inputs=input_layer,outputs=x)
+
+
+def create_model_eccv():
+	input_layer = Input(shape=(None, None, 3), name='input')
+
+	x = conv_batch(input_layer, 16, 3)
+	x = conv_batch(x, 16, 3)
+	x = MaxPooling2D(pool_size=(2, 2))(x)
+	x = conv_batch(x, 32, 3)
+	x = res_block(x, 32)
+	x = MaxPooling2D(pool_size=(2, 2))(x)
+	x = conv_batch(x, 64, 3)
+	x = res_block(x, 64)
+	x = res_block(x, 64)
+	x = MaxPooling2D(pool_size=(2, 2))(x)
+	x = conv_batch(x, 64, 3)
+	x = res_block(x, 64)
+	x = res_block(x, 64)
+	x = MaxPooling2D(pool_size=(2, 2))(x)
+	x = conv_batch(x, 128, 3)
+	x = res_block(x, 128)
+	x = res_block(x, 128)
+	x = res_block(x, 128)
+	x = res_block(x, 128)
+
+	x = end_block(x)
+
+	return Model(inputs=input_layer, outputs=x)
 
 
 # Model not converging...
