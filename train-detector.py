@@ -119,7 +119,7 @@ if __name__ == '__main__':
 	model_path_final  = '%s/%s_final'  % (outdir,netname)
 
 	# summary_writer = tf.summary.FileWriter('/media/jones/dataset/alpr/lotes_rotulacao/l1/logdir', sess.graph)
-	summary_writer = tf.summary.FileWriter('/media/jones/dataset/alpr/fontes/lpr/wpod/logs2')
+	summary_writer = tf.summary.FileWriter('/media/jones/datarec/lpr/logsdropout')
 
 	# pylint: disable=maybe-no-member
 	# summary.value.add(tag='validation_ds/accuracy', simple_value=accuracy_val)
@@ -148,7 +148,7 @@ if __name__ == '__main__':
 			mean_loss = total_loss_it/1000
 			print('it %i , mean loss %f ' % (it, mean_loss))
 			summary = tf.Summary()
-			mAP_pascal, mAP_pascal_all_points, mAP_coco =  validar_lp_model(validate_dir,'/media/jones/dataset/alpr/lotes_rotulacao/validation_output', model)
+			mAP_pascal, mAP_pascal_all_points, mAP_coco =  validar_lp_model(validate_dir,'/media/jones/datarec/lpr/dataset/validate_output_ceia', model)
 			print('Saving model (%s)' % model_path_backup)
 			summary.value.add(tag='train_loss', simple_value=mean_loss)
 			summary.value.add(tag='mAP_pascal', simple_value=mAP_pascal)

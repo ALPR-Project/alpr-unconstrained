@@ -37,7 +37,7 @@ def validar_lp_model(entrada_diretorio_validacao, diretorio_saida, wpod_net):
 	imgs_paths = glob('%s/*.jpg' % entrada_diretorio_validacao)
 	print('Searching for license plates using WPOD-NET')
 	for i,img_path in enumerate(imgs_paths):
-		print('\t Processing %s' % img_path)
+		# print('\t Processing %s' % img_path)
 		bname_image_file = splitext(basename(img_path))[0]
 		name_file_gt = bname_image_file+'.txt'
 		name_file = basename(img_path)
@@ -46,10 +46,19 @@ def validar_lp_model(entrada_diretorio_validacao, diretorio_saida, wpod_net):
 		ratio = float(max(Ivehicle.shape[:2]))/min(Ivehicle.shape[:2])
 		side  = int(ratio*288.)
 		bound_dim = min(side + (side%(2**4)),608)
-		print("\t\tBound dim: %d, ratio: %f" % (bound_dim,ratio))
+		# print("\t\tBound dim: %d, ratio: %f" % (bound_dim,ratio))
 		Llp,LlpImgs,_ = detect_lp(wpod_net,im2single(Ivehicle),bound_dim,2**4,(240,80),lp_threshold)
+		lista_preds_frame = []
+		gt_img_path = img_path.replace('.jpg', '.txt')
+		ground_truth_frame = []
+		with open(gt_img_path) as f:
+			lines = f.readlines()
+			for linha in lines:
+				pontos = linha.split(',')[1:9]
+				ground_truth = [int(float(pontos[0]) * width), int(float(pontos[4]) * height),
+								int(float(pontos[2]) * width), int(float(pontos[6]) * height), 0, 0, 0]
+				ground_truth_frame.append(ground_truth)
 		if len(LlpImgs):
-			lista_preds_frame = []
 			for indice_bbox,Ilp in enumerate(LlpImgs):
 				# Ilp = LlpImgs[0]
 				Ilp = cv2.cvtColor(Ilp, cv2.COLOR_BGR2GRAY)
@@ -78,16 +87,11 @@ def validar_lp_model(entrada_diretorio_validacao, diretorio_saida, wpod_net):
 				# cv2.imwrite('%s/%s_lp_car.png' % (output_dir,bname), car_rgb_np)
 				# cv2.imwrite('%s/%s_lp.png' % (output_dir,bname),Ilp*255.)
 				# writeShapes('%s/%s_lp.txt' % (diretorio_saida,bname_image_file),[s])
-			gt_img_path = img_path.replace('.jpg', '.txt')
-			ground_truth_frame = []
-			with open(gt_img_path) as f:
-				lines = f.readlines()
-				for linha in lines:
-					pontos = linha.split(',')[1:9]
-					ground_truth = [int(float(pontos[0])*width), int(float(pontos[4])*height), int(float(pontos[2])*width), int(float(pontos[6])*height), 0, 0, 0]
-					ground_truth_frame.append(ground_truth)
-			metric_fn.add(np.array(lista_preds_frame), np.array(ground_truth_frame))
-
+		else:
+			print('imagem sem placa detectacada %s ' % img_path)
+			lista_preds_frame.append([0, 0, 0, 0, 0, 0])
+			# metric_fn.add(np.array(lista_preds_frame), np.array([[0, 0, 0, 0, 0, 0, 0]]))
+		metric_fn.add(np.array(lista_preds_frame), np.array(ground_truth_frame))
 		if is_exibir_gt and len(LlpImgs):
 			for bbox_gt in ground_truth_frame:
 				cv2.rectangle(car_rgb_np, (bbox_gt[0], bbox_gt[1]), (bbox_gt[2], bbox_gt[3]), bbox_color_gt, thickness)  # filled
