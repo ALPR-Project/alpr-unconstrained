@@ -29,6 +29,36 @@ def validate_model(wpod_net_path, validate_dir, output_dir):
 	validar_lp_model(validate_dir, output_dir, wpod_net)
 
 
+def calc_iou(gt_bbox, pred_bbox):
+	'''
+	This function takes the predicted bounding box and ground truth bounding box and
+	return the IoU ratio
+	'''
+	x_topleft_gt, y_topleft_gt, x_bottomright_gt, y_bottomright_gt = gt_bbox
+	x_topleft_p, y_topleft_p, x_bottomright_p, y_bottomright_p = pred_bbox
+	if (x_topleft_gt > x_bottomright_gt) or (y_topleft_gt > y_bottomright_gt):
+		raise AssertionError("Ground Truth Bounding Box is not correct")
+	if (x_topleft_p > x_bottomright_p) or (y_topleft_p > y_bottomright_p):
+		raise AssertionError("Predicted Bounding Box is not correct", x_topleft_p, x_bottomright_p, y_topleft_p, y_bottomright_gt)
+	# if the GT bbox and predcited BBox do not overlap then iou=0
+	if x_bottomright_gt < x_topleft_p:
+		# If bottom right of x-coordinate  GT  bbox is less than or above the top left of x coordinate of  the predicted BBox
+		return 0.0
+	if y_bottomright_gt < y_topleft_p:  # If bottom right of y-coordinate  GT  bbox is less than or above the top left of y coordinate of  the predicted BBox
+		return 0.0
+	if x_topleft_gt > x_bottomright_p:  # If bottom right of x-coordinate  GT  bbox is greater than or below the bottom right  of x coordinate of  the predcited BBox
+		return 0.0
+	if y_topleft_gt > y_bottomright_p:  # If bottom right of y-coordinate  GT  bbox is greater than or below the bottom right  of y coordinate of  the predcited BBox
+		return 0.0
+	GT_bbox_area = (x_bottomright_gt - x_topleft_gt + 1) * (y_bottomright_gt - y_topleft_gt + 1)
+	Pred_bbox_area = (x_bottomright_p - x_topleft_p + 1) * (y_bottomright_p - y_topleft_p + 1)
+	x_top_left = np.max([x_topleft_gt, x_topleft_p])
+	y_top_left = np.max([y_topleft_gt, y_topleft_p])
+	x_bottom_right = np.min([x_bottomright_gt, x_bottomright_p])
+	y_bottom_right = np.min([y_bottomright_gt, y_bottomright_p])
+	intersection_area = (x_bottom_right - x_top_left + 1) * (y_bottom_right - y_top_left + 1)
+	union_area = (GT_bbox_area + Pred_bbox_area - intersection_area)
+	return intersection_area / union_area
 
 
 def validar_lp_model(entrada_diretorio_validacao, diretorio_saida, wpod_net):
@@ -55,9 +85,21 @@ def validar_lp_model(entrada_diretorio_validacao, diretorio_saida, wpod_net):
 			lines = f.readlines()
 			for linha in lines:
 				pontos = linha.split(',')[1:9]
-				ground_truth = [int(float(pontos[0]) * width), int(float(pontos[4]) * height),
-								int(float(pontos[2]) * width), int(float(pontos[6]) * height), 0, 0, 0]
-				ground_truth_frame.append(ground_truth)
+				pontos = [int(float(ponto)*width) if indice < 4 else int(float(ponto)*height)  for indice, ponto in enumerate(pontos)]
+				# ground_truth = [int(float(pontos[0]) * width), int(float(pontos[4]) * height),
+				# 				int(float(pontos[2]) * width), int(float(pontos[6]) * height), 0, 0, 0]
+				x_points = pontos[0:4] * width
+				y_points = pontos[4:8] * height
+				# top_left_plate = int(float(pontos[0]) * width), int(float(pontos[4]) * height)
+				top_left_plate_x = min(x_points)
+				top_left_plate_y = min(y_points)
+				bottom_right_plate_x = max(x_points)
+				bottom_right_plate_y = max(y_points)
+				top_left_plate = top_left_plate_x, top_left_plate_y
+				# bottom_right_plate = int(float(pontos[2]) * width), int(float(pontos[6]) * height)
+				bottom_right_plate = bottom_right_plate_x, bottom_right_plate_y
+				# gt = [xmin, ymin, xmax, ymax, class_id, difficult, crowd]
+				ground_truth_frame.append([top_left_plate[0], top_left_plate[1], bottom_right_plate[0], bottom_right_plate[1], 0, 0, 0])
 		if len(LlpImgs):
 			for indice_bbox,Ilp in enumerate(LlpImgs):
 				# Ilp = LlpImgs[0]
