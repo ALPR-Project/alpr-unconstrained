@@ -61,11 +61,39 @@ def calc_iou(gt_bbox, pred_bbox):
 	return intersection_area / union_area
 
 
+def evaluate_precision_recall(ground_truth_frame, lista_preds_frame, iou_threshold):
+	matched_ground_truth_indexes = []
+	matched_prediction_indexes = []
+	true_positive = 0
+	for index_pred, prediction in enumerate(lista_preds_frame):
+		pred_bbox = (prediction[0], prediction[1], prediction[2], prediction[3])
+		if index_pred in matched_prediction_indexes:
+			continue
+		for index_gt, ground_truth in enumerate(ground_truth_frame):
+			gt_bbox = (ground_truth[0], ground_truth[1], ground_truth[2], ground_truth[3])
+			iou = calc_iou(gt_bbox, pred_bbox)
+			if iou >= iou_threshold:
+				true_positive += 1
+				matched_ground_truth_indexes.append(index_gt)
+				matched_prediction_indexes.append(index_pred)
+	false_negative = len(ground_truth_frame) - true_positive
+	false_positive = len(lista_preds_frame) - true_positive
+	return true_positive, false_positive, false_negative
+
+
+
+
+
+
+
 def validar_lp_model(entrada_diretorio_validacao, diretorio_saida, wpod_net):
 	print('iniciando validacao modelo')
 	lp_threshold = .4
 	imgs_paths = glob('%s/*.jpg' % entrada_diretorio_validacao)
 	print('Searching for license plates using WPOD-NET')
+	true_positive = 0
+	false_positive = 0
+	false_negative = 0
 	for i,img_path in enumerate(imgs_paths):
 		# print('\t Processing %s' % img_path)
 		bname_image_file = splitext(basename(img_path))[0]
@@ -138,6 +166,10 @@ def validar_lp_model(entrada_diretorio_validacao, diretorio_saida, wpod_net):
 			for bbox_gt in ground_truth_frame:
 				cv2.rectangle(car_rgb_np, (bbox_gt[0], bbox_gt[1]), (bbox_gt[2], bbox_gt[3]), bbox_color_gt, thickness)  # filled
 			cv2.imwrite('%s/%s_lp_car.png' % (diretorio_saida, bname_image_file), car_rgb_np)
+		true_positive_frame, false_positive_frame, false_negative_frame = evaluate_precision_recall(ground_truth_frame, lista_preds_frame, 0.5)
+		true_positive += true_positive_frame
+		false_positive += false_positive_frame
+		false_negative += false_negative_frame
 	print('calculando mAP')
 	# compute PASCAL VOC metric
 	mAP_pascal = metric_fn.value(iou_thresholds=0.5, recall_thresholds=np.arange(0., 1.1, 0.1))['mAP']
@@ -148,6 +180,10 @@ def validar_lp_model(entrada_diretorio_validacao, diretorio_saida, wpod_net):
 	# compute metric COCO metric
 	mAP_coco = metric_fn.value(iou_thresholds=np.arange(0.5, 1.0, 0.05), recall_thresholds=np.arange(0., 1.01, 0.01), mpolicy='soft')['mAP']
 	print('COCO mAP: '+str(mAP_coco))
+	precision = true_positive / (true_positive + false_positive)
+	recall = true_positive / (true_positive + false_negative)
+	print('precision:  %.2f  | recall: %.2f ' % (precision, recall))
+	print('true positives: %s | false positives: %s | false negatives: %s  ' % (true_positive, false_positive, false_negative))
 	return mAP_pascal, mAP_pascal_all_points, mAP_coco
 
 
