@@ -20,9 +20,69 @@ metric_fn = MetricBuilder.build_evaluation_metric("map_2d", async_mode=False, nu
 is_exibir_gt = True
 bbox_color_gt = (0, 0, 255)
 
+class IndicadoresValidacao:
+
+	def __init__(self):
+		self.precision = 0
+		self.recall = 0
+		self.precision_moto = 0
+		self.precision_car = 0
+		self.recall_moto = 0
+		self.recall_car = 0
+		self.true_positive = 0
+		self.false_positive = 0
+		self.false_negative = 0
+		self.true_positive_car = 0
+		self.false_positive_car = 0
+		self.false_negative_car = 0
+		self.true_positive_moto = 0
+		self.false_positive_moto = 0
+		self.false_negative_moto = 0
+		self.labeled_samples_total = 0
+		self.labeled_samples_total_car = 0
+		self.labeled_samples_total_moto = 0
+
+
+	def precision_recall(self):
+		return self.precision_recall_base(self.true_positive, self.false_positive, self.false_negative)
+
+	def precision_recall_car(self):
+		return self.precision_recall_base(self.true_positive_car, self.false_positive_car, self.false_negative_car)
+
+	def precision_recall_moto(self):
+		return self.precision_recall_base(self.true_positive_moto, self.false_positive_moto, self.false_negative_moto)
+
+	def precision_recall_base(self, true_positive, false_positive, false_negative):
+		return true_positive / (true_positive + false_positive), true_positive / (true_positive + false_negative)
+
+	def imprimir_precision_recall(self, precision, recall, class_object):
+		print('object class: %s | precision:  %.2f  | recall: %.2f ' % (class_object, precision, recall))
+
+	def imprimir_precision_recall_all(self):
+		precision, recall = self.precision_recall()
+		self.imprimir_precision_recall(precision, recall, 'total')
+		precision, recall = self.precision_recall_car()
+		self.imprimir_precision_recall(precision, recall, 'car')
+		precision, recall = self.precision_recall_moto()
+		self.imprimir_precision_recall(precision, recall, 'moto')
+
+	def imprimir_fpn(self, true_positive, false_positive, false_negative, class_object):
+		print('object class: %s | true positives: %s | false positives: %s | false negatives: %s  ' % (class_object, true_positive, false_positive, false_negative))
+
+	def imprimir_total_amostras(self):
+		print('total amostras: %s | total amostras carros: %s | total amostras moto: %s  ' % (self.labeled_samples_total, self.labeled_samples_total_car, self.labeled_samples_total_moto))
+
+	def imprmir_ftn_all(self):
+		self.imprimir_total_amostras()
+		self.imprimir_fpn(self.true_positive, self.false_positive, self.false_negative, 'total')
+		self.imprimir_fpn(self.true_positive_moto, self.false_positive_moto, self.false_negative_moto, 'moto')
+		self.imprimir_fpn(self.true_positive_car, self.false_positive_car, self.false_negative_car, 'car')
 
 
 
+
+
+indicadores_validacao = IndicadoresValidacao()
 
 def validate_model(wpod_net_path, validate_dir, output_dir):
 	wpod_net = load_model(wpod_net_path)
@@ -91,9 +151,6 @@ def validar_lp_model(entrada_diretorio_validacao, diretorio_saida, wpod_net):
 	lp_threshold = .4
 	imgs_paths = glob('%s/*.jpg' % entrada_diretorio_validacao)
 	print('Searching for license plates using WPOD-NET')
-	true_positive = 0
-	false_positive = 0
-	false_negative = 0
 	for i,img_path in enumerate(imgs_paths):
 		# print('\t Processing %s' % img_path)
 		bname_image_file = splitext(basename(img_path))[0]
@@ -109,10 +166,15 @@ def validar_lp_model(entrada_diretorio_validacao, diretorio_saida, wpod_net):
 		lista_preds_frame = []
 		gt_img_path = img_path.replace('.jpg', '.txt')
 		ground_truth_frame = []
+		ground_truth_car = []
+		ground_truth_moto = []
+		class_object = None
 		with open(gt_img_path) as f:
 			lines = f.readlines()
 			for linha in lines:
+				indicadores_validacao.labeled_samples_total += 1
 				pontos = linha.split(',')[1:9]
+				class_object = int(linha.split(',')[-2])
 				pontos = [int(float(ponto)*width) if indice < 4 else int(float(ponto)*height)  for indice, ponto in enumerate(pontos)]
 				# ground_truth = [int(float(pontos[0]) * width), int(float(pontos[4]) * height),
 				# 				int(float(pontos[2]) * width), int(float(pontos[6]) * height), 0, 0, 0]
@@ -128,6 +190,13 @@ def validar_lp_model(entrada_diretorio_validacao, diretorio_saida, wpod_net):
 				bottom_right_plate = bottom_right_plate_x, bottom_right_plate_y
 				# gt = [xmin, ymin, xmax, ymax, class_id, difficult, crowd]
 				ground_truth_frame.append([top_left_plate[0], top_left_plate[1], bottom_right_plate[0], bottom_right_plate[1], 0, 0, 0])
+				if class_object == 0:
+					indicadores_validacao.labeled_samples_total_car +=1
+					ground_truth_car.append([top_left_plate[0], top_left_plate[1], bottom_right_plate[0], bottom_right_plate[1], class_object, 0, 0])
+				else:
+					indicadores_validacao.labeled_samples_total_moto += 1
+					ground_truth_moto.append([top_left_plate[0], top_left_plate[1], bottom_right_plate[0], bottom_right_plate[1], class_object, 0, 0])
+
 		if len(LlpImgs):
 			for indice_bbox,Ilp in enumerate(LlpImgs):
 				# Ilp = LlpImgs[0]
@@ -150,7 +219,7 @@ def validar_lp_model(entrada_diretorio_validacao, diretorio_saida, wpod_net):
 				thickness = 1
 				# [xmin, ymin, xmax, ymax, class_id, confidence]
 				if top_left_x >0 and top_left_y > 0 and bottom_right_x > 0 and bottom_right_y > 0:
-					preds_frame = [int(top_left_x), int(top_left_y), int(bottom_right_x), int(bottom_right_y), 0, probability]
+					preds_frame = [int(top_left_x), int(top_left_y), int(bottom_right_x), int(bottom_right_y), class_object, probability]
 					lista_preds_frame.append(preds_frame)
 				cv2.rectangle(car_rgb_np, (top_left_x, top_left_y), (bottom_right_x, bottom_right_y), bbox_color, thickness)  # filled
 				s = Shape(Llp[0].pts)
@@ -159,7 +228,7 @@ def validar_lp_model(entrada_diretorio_validacao, diretorio_saida, wpod_net):
 				# writeShapes('%s/%s_lp.txt' % (diretorio_saida,bname_image_file),[s])
 		else:
 			print('imagem sem placa detectacada %s ' % img_path)
-			lista_preds_frame.append([0, 0, 0, 0, 0, 0])
+			lista_preds_frame.append([0, 0, 0, 0, class_object, 0])
 			# metric_fn.add(np.array(lista_preds_frame), np.array([[0, 0, 0, 0, 0, 0, 0]]))
 		metric_fn.add(np.array(lista_preds_frame), np.array(ground_truth_frame))
 		if is_exibir_gt and len(LlpImgs):
@@ -167,24 +236,28 @@ def validar_lp_model(entrada_diretorio_validacao, diretorio_saida, wpod_net):
 				cv2.rectangle(car_rgb_np, (bbox_gt[0], bbox_gt[1]), (bbox_gt[2], bbox_gt[3]), bbox_color_gt, thickness)  # filled
 			cv2.imwrite('%s/%s_lp_car.png' % (diretorio_saida, bname_image_file), car_rgb_np)
 		true_positive_frame, false_positive_frame, false_negative_frame = evaluate_precision_recall(ground_truth_frame, lista_preds_frame, 0.5)
-		true_positive += true_positive_frame
-		false_positive += false_positive_frame
-		false_negative += false_negative_frame
+		indicadores_validacao.true_positive += true_positive_frame
+		indicadores_validacao.false_positive += false_positive_frame
+		indicadores_validacao.false_negative += false_negative_frame
+		if class_object == 0:
+			indicadores_validacao.true_positive_car += true_positive_frame
+			indicadores_validacao.false_positive_car += false_positive_frame
+			indicadores_validacao.false_negative_car += false_negative_frame
+		else:
+			indicadores_validacao.true_positive_moto += true_positive_frame
+			indicadores_validacao.false_positive_moto += false_positive_frame
+			indicadores_validacao.false_negative_moto += false_negative_frame
+
 	print('calculando mAP')
-	# compute PASCAL VOC metric
 	mAP_pascal = metric_fn.value(iou_thresholds=0.5, recall_thresholds=np.arange(0., 1.1, 0.1))['mAP']
 	print('VOC PASCAL mAP:'+str(mAP_pascal))
-	# compute PASCAL VOC metric at the all points
 	mAP_pascal_all_points = metric_fn.value(iou_thresholds=0.5)['mAP']
 	print('VOC PASCAL mAP in all points:'+str(mAP_pascal_all_points))
-	# compute metric COCO metric
 	mAP_coco = metric_fn.value(iou_thresholds=np.arange(0.5, 1.0, 0.05), recall_thresholds=np.arange(0., 1.01, 0.01), mpolicy='soft')['mAP']
 	print('COCO mAP: '+str(mAP_coco))
-	precision = true_positive / (true_positive + false_positive)
-	recall = true_positive / (true_positive + false_negative)
-	print('precision:  %.2f  | recall: %.2f ' % (precision, recall))
-	print('true positives: %s | false positives: %s | false negatives: %s  ' % (true_positive, false_positive, false_negative))
-	return mAP_pascal, mAP_pascal_all_points, mAP_coco
+	indicadores_validacao.imprmir_ftn_all()
+	indicadores_validacao.imprimir_precision_recall_all()
+	return mAP_pascal, mAP_pascal_all_points, mAP_coco, indicadores_validacao
 
 
 if __name__ == '__main__':

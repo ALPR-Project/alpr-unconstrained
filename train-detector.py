@@ -17,7 +17,7 @@ from src.loss import loss
 from src.utils import image_files_from_folder, show
 from src.sampler import augment_sample, labels2output_map
 from src.data_generator import DataGenerator
-from src.evaluation_lpd import validar_lp_model
+from evaluate_model_async import validar_lp_model
 from keras.callbacks import TensorBoard
 
 from pdb import set_trace as pause
@@ -70,12 +70,17 @@ if __name__ == '__main__':
 	parser.add_argument('-op'		,'--optimizer'		,type=str   , default='Adam'	,help='Optmizer (default = Adam)')
 	parser.add_argument('-lr'		,'--learning-rate'	,type=float , default=.01		,help='Optmizer (default = 0.01)')
 	parser.add_argument('-vr' ,'--validate-dir' ,type=str, required=True ,help='Input data directory for validating')
+	parser.add_argument('-ld' ,'--logdir' ,type=str, required=True ,help='Input data directory for validating')
+	parser.add_argument('-vod' ,'--validation_output_dir' ,type=str, required=True ,help='Input data directory for validating')
 	args = parser.parse_args()
 
 	netname 	= basename(args.name)
 	train_dir 	= args.train_dir
 	outdir 		= args.output_dir
 	validate_dir = args.validate_dir
+	logdir = args.logdir
+	validation_output_dir = args.validation_output_dir
+
 
 	iterations 	= args.iterations
 	batch_size 	= args.batch_size
@@ -119,7 +124,7 @@ if __name__ == '__main__':
 	model_path_final  = '%s/%s_final'  % (outdir,netname)
 
 	# summary_writer = tf.summary.FileWriter('/media/jones/dataset/alpr/lotes_rotulacao/l1/logdir', sess.graph)
-	summary_writer = tf.summary.FileWriter('/media/jones/datarec/lpr/logsdropout')
+	summary_writer = tf.summary.FileWriter(logdir)
 
 	# pylint: disable=maybe-no-member
 	# summary.value.add(tag='validation_ds/accuracy', simple_value=accuracy_val)
@@ -127,6 +132,7 @@ if __name__ == '__main__':
 	total_loss_it = 0
 	print(' (start iterating) qtde de samples no buffer: %d ' % dg._count)
 	lr_ajustado = False
+	qtd_iterations_per_epoch = 100
 	for it in range(iterations):
 
 		print('Iter. %d (of %d)' % (it+1,iterations))
@@ -144,14 +150,22 @@ if __name__ == '__main__':
 		print('\tLoss: %f' % train_loss)
 		total_loss_it += train_loss
 		# Save model every 1000 iterations
-		if (it+1) % 1000 == 0:
-			mean_loss = total_loss_it/1000
+		if (it+1) % qtd_iterations_per_epoch == 0:
+			mean_loss = total_loss_it/qtd_iterations_per_epoch
 			print('it %i , mean loss %f ' % (it, mean_loss))
 			summary = tf.Summary()
-			mAP_pascal, mAP_pascal_all_points, mAP_coco =  validar_lp_model(validate_dir,'/media/jones/datarec/lpr/dataset/validate_output_ceia', model)
+			mAP_pascal, mAP_pascal_all_points, mAP_coco, indicadores_validacao = validar_lp_model(validate_dir, validation_output_dir, model)
 			print('Saving model (%s)' % model_path_backup)
 			summary.value.add(tag='train_loss', simple_value=mean_loss)
 			summary.value.add(tag='mAP_pascal', simple_value=mAP_pascal)
+			precision_car, recall_car = indicadores_validacao.precision_recall_car()
+			summary.value.add(tag='precision car', simple_value=precision_car)
+			summary.value.add(tag='recall car', simple_value=recall_car)
+			summary.value.add(tag='false negative car', simple_value=indicadores_validacao.false_negative_car)
+			precision_moto, recall_moto = indicadores_validacao.precision_recall_moto()
+			summary.value.add(tag='precision moto', simple_value=precision_moto)
+			summary.value.add(tag='recall moto', simple_value=recall_moto)
+			summary.value.add(tag='false negative moto', simple_value=indicadores_validacao.false_negative_moto)
 			summary_writer.add_summary(summary, int(it + 1 / 100))
 			save_model(model,model_path_backup)
 			total_loss_it = 0
