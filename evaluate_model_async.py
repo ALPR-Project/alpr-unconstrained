@@ -53,7 +53,13 @@ class IndicadoresValidacao:
 		return self.precision_recall_base(self.true_positive_moto, self.false_positive_moto, self.false_negative_moto)
 
 	def precision_recall_base(self, true_positive, false_positive, false_negative):
-		return true_positive / (true_positive + false_positive), true_positive / (true_positive + false_negative)
+		precicion = 0
+		recall = 0
+		if (true_positive + false_positive) != 0:
+			precicion = true_positive / (true_positive + false_positive)
+		if (true_positive + false_negative) != 0:
+			recall = true_positive / (true_positive + false_negative)
+		return precicion, recall
 
 	def imprimir_precision_recall(self, precision, recall, class_object):
 		print('object class: %s | precision:  %.2f  | recall: %.2f ' % (class_object, precision, recall))
@@ -82,7 +88,6 @@ class IndicadoresValidacao:
 
 
 
-indicadores_validacao = IndicadoresValidacao()
 
 def validate_model(wpod_net_path, validate_dir, output_dir):
 	wpod_net = load_model(wpod_net_path)
@@ -142,15 +147,12 @@ def evaluate_precision_recall(ground_truth_frame, lista_preds_frame, iou_thresho
 
 
 
-
-
-
-
 def validar_lp_model(entrada_diretorio_validacao, diretorio_saida, wpod_net):
 	print('iniciando validacao modelo')
 	lp_threshold = .4
 	imgs_paths = glob('%s/*.jpg' % entrada_diretorio_validacao)
 	print('Searching for license plates using WPOD-NET')
+	indicadores_validacao = IndicadoresValidacao()
 	for i,img_path in enumerate(imgs_paths):
 		# print('\t Processing %s' % img_path)
 		bname_image_file = splitext(basename(img_path))[0]
@@ -172,6 +174,8 @@ def validar_lp_model(entrada_diretorio_validacao, diretorio_saida, wpod_net):
 		with open(gt_img_path) as f:
 			lines = f.readlines()
 			for linha in lines:
+				if len(linha)<5:
+					continue
 				indicadores_validacao.labeled_samples_total += 1
 				pontos = linha.split(',')[1:9]
 				class_object = int(linha.split(',')[-2])

@@ -132,7 +132,7 @@ if __name__ == '__main__':
 	total_loss_it = 0
 	print(' (start iterating) qtde de samples no buffer: %d ' % dg._count)
 	lr_ajustado = False
-	qtd_iterations_per_epoch = 100
+	qtd_iterations_per_epoch = 1000
 	for it in range(iterations):
 
 		print('Iter. %d (of %d)' % (it+1,iterations))

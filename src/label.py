@@ -124,6 +124,8 @@ def readShapes(path,obj_type=Shape):
 	shapes = []
 	with open(path) as fp:
 		for line in fp:
+			if len(line)<5:
+				continue
 			shape = obj_type()
 			shape.read(line)
 			shapes.append(shape)

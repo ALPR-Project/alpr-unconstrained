@@ -69,7 +69,8 @@ def augment_sample(I,pts,dim):
 	I = im2single(I)
 	iwh = getWH(I.shape)
 
-	whratio = random.uniform(2.,4.)
+	# whratio = random.uniform(2.,4.)
+	whratio = 1.
 	wsiz = random.uniform(dim*.2,dim*1.)
 	
 	hsiz = wsiz/whratio
