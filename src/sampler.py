@@ -8,14 +8,14 @@ from src.label	import Label
 from src.projection_utils import perspective_transform, find_T_matrix, getRectPts
 
 
-def labels2output_map(label,lppts,dim,stride):
+def labels2output_map(label,lppts,dim_w, dim_h,stride):
 
-	side = ((float(dim) + 40.)/2.)/stride # 7.75 when dim = 208 and stride = 16
+	side = ((float(dim_w) + 40.)/2.)/stride # 7.75 when dim = 208 and stride = 16
 
-	outsize = int(dim/stride)
+	outsize = int(dim_w/stride)
 	Y  = np.zeros((outsize,outsize,2*4+1),dtype='float32')
 	MN = np.array([outsize,outsize])
-	WH = np.array([dim,dim],dtype=float)
+	WH = np.array([dim_w,dim_h],dtype=float)
 
 	tlx,tly = np.floor(np.maximum(label.tl(),0.)*MN).astype(int).tolist()
 	brx,bry = np.ceil (np.minimum(label.br(),1.)*MN).astype(int).tolist()
@@ -43,13 +43,14 @@ def labels2output_map(label,lppts,dim,stride):
 def pts2ptsh(pts):
 	return np.matrix(np.concatenate((pts,np.ones((1,pts.shape[1]))),0))
 
-def project(I,T,pts,dim):
+def project(I,T,pts,dim_w, dim_h):
 	ptsh 	= np.matrix(np.concatenate((pts,np.ones((1,4))),0))
 	ptsh 	= np.matmul(T,ptsh)
 	ptsh 	= ptsh/ptsh[2]
 	ptsret  = ptsh[:2]
-	ptsret  = ptsret/dim
-	Iroi = cv2.warpPerspective(I,T,(dim,dim),borderValue=.0,flags=cv2.INTER_LINEAR)
+	ptsret[0] = ptsret[0]/dim_w
+	ptsret[1] = ptsret[1] / dim_h
+	Iroi = cv2.warpPerspective(I,T,(dim_w,dim_h),borderValue=.0,flags=cv2.INTER_LINEAR)
 	return Iroi,ptsret
 
 def flip_image_and_pts(I,pts):
@@ -59,7 +60,7 @@ def flip_image_and_pts(I,pts):
 	pts = pts[...,idx]
 	return I,pts
 
-def augment_sample(I,pts,dim):
+def augment_sample(I,pts, dim_w, dim_h):
 
 	maxsum,maxangle = 120,np.array([30.,30.,45.])
 	angles = np.random.rand(3)*maxangle
@@ -71,21 +72,21 @@ def augment_sample(I,pts,dim):
 
 	# whratio = random.uniform(2.,4.)
 	whratio = 1.
-	wsiz = random.uniform(dim*.2, dim*1.)
+	wsiz = random.uniform(dim_w*.1, dim_w*.5)
 	
 	hsiz = wsiz/whratio
 
-	dx = random.uniform(0.,dim - wsiz)
-	dy = random.uniform(0.,dim - hsiz)
+	dx = random.uniform(0.,dim_w - wsiz)
+	dy = random.uniform(0.,dim_h - hsiz)
 
 	pph = getRectPts(dx,dy,dx+wsiz,dy+hsiz)
 	pts = pts*iwh.reshape((2,1))
 	T = find_T_matrix(pts2ptsh(pts),pph)
 
-	H = perspective_transform((dim,dim),angles=angles)
+	H = perspective_transform((dim_w,dim_h),angles=angles)
 	H = np.matmul(H,T)
 
-	Iroi,pts = project(I,H,pts,dim)
+	Iroi,pts = project(I,H,pts,dim_w, dim_h)
 	
 	hsv_mod = np.random.rand(3).astype('float32')
 	hsv_mod = (hsv_mod - .5)*.3

@@ -28,11 +28,11 @@ def load_network(modelpath,input_dim):
 	input_shape = (input_dim,input_dim,3)
 
 	# Fixed input size for training
-	inputs  = keras.layers.Input(shape=(input_dim,input_dim,3))
+	inputs = keras.layers.Input(shape=(input_dim,input_dim,3))
 	outputs = model(inputs)
 
 	output_shape = tuple([s.value for s in outputs.shape[1:]])
-	output_dim   = output_shape[1]
+	output_dim = output_shape[1]
 	model_stride = input_dim / output_dim
 
 	assert input_dim % output_dim == 0, \
@@ -44,32 +44,38 @@ def load_network(modelpath,input_dim):
 
 	return model, model_stride, input_shape, output_shape
 
-def process_data_item(data_item,dim,model_stride):
+def process_data_item(data_item,dim_w, dim_h,model_stride):
 	image_ndarray = cv2.imread(data_item[0])
-	XX,llp,pts = augment_sample(image_ndarray,data_item[1].pts,dim)
-	YY = labels2output_map(llp,pts,dim,model_stride)
-	return XX,YY
+	XX,llp,pts_transformed = augment_sample(image_ndarray,data_item[1].pts,dim_w, dim_h)
+	YY = labels2output_map(llp,pts_transformed, dim_w, dim_h,model_stride)
+	return XX, YY, pts_transformed
 
 
 def salvar_imagem(imagem_array):
 	ts = time.time()
 	nome_arquivo = str(ts).replace('.', '')
-	caminho_arquivo ='images_cropped/'+nome_arquivo+'.jpg'
+	caminho_arquivo ='samples/'+nome_arquivo+'.jpg'
 	cv2.imwrite(caminho_arquivo, imagem_array)
 
 
 
 if __name__ == '__teste__':
 	data_item = []
-	L = readShapes('/media/jones/dataset/alpr/lotes_rotulacao/preprocessados/train/lote1_1703_2000000544.txt')
-	file = '/media/jones/dataset/alpr/lotes_rotulacao/preprocessados/train/lote1_1703_2000000544.jpg'
+	# L = readShapes('/media/jones/dataset/alpr/lotes_rotulacao/preprocessados/train/lote1_1703_2000000544.txt')
+	# file = '/media/jones/dataset/alpr/lotes_rotulacao/preprocessados/train/lote1_1703_2000000544.jpg'
+	L = readShapes('l4_160_3104_1_1_000000446.txt')
+	file = 'l4_160_3104_1_1_000000446.jpg'
 	# I = cv2.imread(file)
-	dim = 208
+	dim_w = 304
+	dim_h = 304
 	# data_item.append([file, L[0]])
 	data_item.append(file)
 	data_item.append(L[0])
 	model_stride = 16.0
-	XX,YY = process_data_item(data_item, dim, model_stride)
+	XX,YY_output_map, pts_transformed = process_data_item(data_item, dim_w, dim_h, model_stride)
+	file_gr_transformed = open('samples/l4_160_3104_1_1_000000446_transf.txt', 'w')
+	file_gr_transformed.write(str(pts_transformed))
+	file_gr_transformed.close()
 	img_ndarray = XX*255
 	salvar_imagem(img_ndarray)
 	# data_item.append()
@@ -102,7 +108,7 @@ if __name__ == '__main__':
 
 	iterations 	= args.iterations
 	batch_size 	= args.batch_size
-	dim 		= 208
+	dim  = 304
 
 	if not isdir(outdir):
 		makedirs(outdir)
@@ -126,7 +132,7 @@ if __name__ == '__main__':
 	print('%d images with labels found' % len(Data))
 
 	dg = DataGenerator(	data=Data, \
-						process_data_item_func=lambda x: process_data_item(x,dim,model_stride),\
+						process_data_item_func=lambda x: process_data_item(x,dim, dim,model_stride),\
 						xshape=xshape, \
 						yshape=(yshape[0],yshape[1],yshape[2]+1), \
 						nthreads=2, \

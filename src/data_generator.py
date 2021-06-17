@@ -64,8 +64,8 @@ class DataGenerator(object):
 
 	def _run(self):
 		while True:
-			x,y = self._compute_sample()
-			self._insert_data(x,y)
+			x,y_output_map, y_transformed = self._compute_sample()
+			self._insert_data(x,y_output_map)
 			if self._stop:
 				break
 
