@@ -58,6 +58,23 @@ def salvar_imagem(imagem_array):
 	cv2.imwrite(caminho_arquivo, imagem_array)
 
 
+
+if __name__ == '__teste__':
+	data_item = []
+	L = readShapes('/media/jones/dataset/alpr/lotes_rotulacao/preprocessados/train/lote1_1703_2000000544.txt')
+	file = '/media/jones/dataset/alpr/lotes_rotulacao/preprocessados/train/lote1_1703_2000000544.jpg'
+	# I = cv2.imread(file)
+	dim = 208
+	# data_item.append([file, L[0]])
+	data_item.append(file)
+	data_item.append(L[0])
+	model_stride = 16.0
+	XX,YY = process_data_item(data_item, dim, model_stride)
+	img_ndarray = XX*255
+	salvar_imagem(img_ndarray)
+	# data_item.append()
+
+
 if __name__ == '__main__':
 
 	parser = argparse.ArgumentParser()
@@ -72,6 +89,7 @@ if __name__ == '__main__':
 	parser.add_argument('-vr' ,'--validate-dir' ,type=str, required=True ,help='Input data directory for validating')
 	parser.add_argument('-ld' ,'--logdir' ,type=str, required=True ,help='Input data directory for validating')
 	parser.add_argument('-vod' ,'--validation_output_dir' ,type=str, required=True ,help='Input data directory for validating')
+	parser.add_argument('-me' ,'--modo_execucao' , type=str, help='0 pra treino. 1 pra teste.', default='0')
 	args = parser.parse_args()
 
 	netname 	= basename(args.name)

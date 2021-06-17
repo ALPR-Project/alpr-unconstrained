@@ -2,6 +2,7 @@ from evaluate_model_async import calc_iou
 
 
 
+
 def analisar_calc_iou():
 	#gt = [xmin, ymin, xmax, ymax, class_id, difficult, crowd]
 	# gt = [[875, 204, 916, 207, 0, 0, 0]]
