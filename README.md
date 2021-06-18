@@ -1,6 +1,58 @@
 # ALPR in Unscontrained Scenarios
 
-## Introduction
+## Resultados
+### benchmark 11/06
+Resultados do modelo baseline
+
+Objeto | Precision | Recall | True Positive | False Positive | False Negative
+------------ | --------- | ------------- | --------- | ------------- | -------------
+Carro (515) | 0.66 | 0.70 | 361 | 182 | 154
+Moto (56) | 0.28 | 0.29 | 16 | 41 | 40
+
+Resultados do modelo CEIA 
+* Dropout 40%
+* Trainset carros
+
+Objeto | Precision | Recall | True Positive | False Positive | False Negative
+------------ | --------- | ------------- | --------- | ------------- | -------------
+Carro (515) | 0.62 | 0.98 | 505 | 309 | 10
+Moto (56) | 0.21 | 0.84 | 47 | 177 | 9
+
+Resultados do modelo CEIA  
+* Dropout 40%
+* Trainset motos
+
+Objeto | Precision | Recall | True Positive | False Positive | False Negative
+------------ | --------- | ------------- | --------- | ------------- | -------------
+Carro (515) | 0.15 | 0.39 | 183 | 1078 | 332
+Moto (56) | 0.14 | 0.62 | 35 | 211 | 21
+
+### benchmark 18/06
+Resultados do modelo CEIA 
+* Dropout 40%
+* Trainset carros
+* Ajuste de proporção de placa (2.84, 3.07
+* Tamanho imagem (304,304)
+* Proporção placa/amostra (0.1, 0.5)
+
+Objeto | Precision | Recall | True Positive | False Positive | False Negative
+------------ | --------- | ------------- | --------- | ------------- | -------------
+Carro (640) | 0.47 | 0.50 | 318 (49,7%) | 360 | 322 (50,31%)
+
+
+Resultados do modelo CEIA  
+* Dropout 40%
+* Trainset motos
+* Ajuste de proporção de placa (1)
+* Tamanho imagem (304,304)
+* Proporção placa/amostra (0.1, 0.5)
+
+Objeto | Precision | Recall | True Positive | False Positive | False Negative
+------------ | --------- | ------------- | --------- | ------------- | -------------
+Moto (97) | 0.37 | 0.51 | 49 (50,5%) | 83 | 48 (49,9%)
+
+
+
 
 This repository contains the author's implementation of ECCV 2018 paper "License Plate Detection and Recognition in Unconstrained Scenarios".
 
