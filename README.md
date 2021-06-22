@@ -61,8 +61,8 @@ Resultados do modelo CEIA
 * modelo: modelo-ceia-ft-dpout-c-208_final
 
 
-Objeto | Precision | Recall | True Positive | False Positive | False Negative
------------- | --------- | ------------- | --------- | ------------- | -------------
+Objeto | Precision | Recall | True Pos | False Pos | False Neg
+------------ | --------- | -------- | --------- | ------------- | -------------
 Carro (640) | 0.56 | 0.90 | 578 (90,3%) | 446 | 62 (9,68%)
 
 
