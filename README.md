@@ -80,6 +80,8 @@ Modelo | Objeto | Precision | Recall | True Pos | False Pos | False Neg
  ------| ------------ | --------- | ------------- | --------- | ------------- | -------------
 Baseline | Carro (640) | 0.70 | 0.74 | 473 (74,3%) | 201 | 167 (26,1%)
 CEIA | Carro (640) | 0.56 | 0.90 | 578 (90,3%) | 446 | 62 (9,68%)
+Baseline | Moto (180) | 0.66 | 0.70 | 126 (70,0%) | 65 | 54 (30,0%)
+CEIA | Moto (180) | 0.21 | 0.67 | 121 (67,2%) | 443 | 59 (32,77%)
 
 whratio = random.uniform(2, 3.07)
 wsiz = random.uniform(dim_w*.2,dim_w*1.)
