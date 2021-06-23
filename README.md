@@ -51,7 +51,48 @@ Objeto | Precision | Recall | True Positive | False Positive | False Negative
 ------------ | --------- | ------------- | --------- | ------------- | -------------
 Moto (97) | 0.37 | 0.51 | 49 (50,5%) | 83 | 48 (49,9%)
 
+### benchmark 20/06
+Resultados do modelo CEIA 
+* Dropout 40%
+* Trainset carros
+* Ajuste de proporção de placa (2, 3.07)
+* Tamanho imagem (208,208)
+* Proporção placa/amostra (0.2, 1.)
+* modelo: modelo-ceia-ft-dpout-c-208_final
 
+
+Objeto | Precision | Recall | True Pos | False Pos | False Neg
+------------ | --------- | -------- | --------- | ------------- | -------------
+Carro (640) | 0.56 | 0.90 | 578 (90,3%) | 446 | 62 (9,68%)
+
+
+### Tabela resumo melhor modelo 
+Resultados do modelo CEIA 
+* Dropout 40%
+* Trainset carros
+* Ajuste de proporção de placa (2, 3.07)
+* Tamanho imagem (208,208)
+* Proporção placa/amostra (0.2, 1.)
+* modelo: modelo-ceia-ft-dpout-c-208_final
+
+
+Modelo | Objeto | Precision | Recall | True Pos | False Pos | False Neg
+ ------| ------------ | --------- | ------------- | --------- | ------------- | -------------
+Baseline | Carro (640) | 0.70 | 0.74 | 473 (74,3%) | 201 | 167 (26,1%)
+CEIA | Carro (640) | 0.56 | 0.90 | 578 (90,3%) | 446 | 62 (9,68%)
+Baseline | Moto (180) | 0.66 | 0.70 | 126 (70,0%) | 65 | 54 (30,0%)
+CEIA | Moto (180) | 0.21 | 0.67 | 121 (67,2%) | 443 | 59 (32,77%)
+
+whratio = random.uniform(2, 3.07)
+wsiz = random.uniform(dim_w*.2,dim_w*1.)
+
+
+### Dataset
+
+Dataset | Train | Validation 
+ ------| ------------ | --------- 
+Carro | 2.801 | 640
+Moto | 399 | 97
 
 
 This repository contains the author's implementation of ECCV 2018 paper "License Plate Detection and Recognition in Unconstrained Scenarios".
