@@ -31,7 +31,7 @@ Moto (56) | 0.14 | 0.62 | 35 | 211 | 21
 Resultados do modelo CEIA 
 * Dropout 40%
 * Trainset carros
-* Ajuste de proporção de placa (2.84, 3.07
+* Ajuste de proporção de placa (2.84, 3.07)
 * Tamanho imagem (304,304)
 * Proporção placa/amostra (0.1, 0.5)
 

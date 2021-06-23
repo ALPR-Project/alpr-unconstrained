@@ -154,7 +154,7 @@ def evaluate_precision_recall(ground_truth_frame, lista_preds_frame, iou_thresho
 
 def validar_lp_model(entrada_diretorio_validacao, diretorio_saida, wpod_net):
 	print('iniciando validacao modelo')
-	lp_threshold = .5
+	lp_threshold = .27
 	imgs_paths = glob('%s/*.jpg' % entrada_diretorio_validacao)
 	if not os.path.exists(diretorio_saida):
 		os.makedirs(diretorio_saida)
