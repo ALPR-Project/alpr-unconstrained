@@ -1,4 +1,5 @@
-
+import os
+from glob import glob
 import time
 import sys
 import numpy as np
@@ -51,11 +52,8 @@ def process_data_item(data_item,dim_w, dim_h,model_stride):
 	return XX, YY, pts_transformed
 
 
-def salvar_imagem(imagem_array):
-	ts = time.time()
-	nome_arquivo = str(ts).replace('.', '')
-	caminho_arquivo ='samples/'+nome_arquivo+'.jpg'
-	cv2.imwrite(caminho_arquivo, imagem_array)
+def salvar_imagem(imagem_array, caminho_completo_arquivo):
+	cv2.imwrite(caminho_completo_arquivo, imagem_array)
 
 
 
@@ -77,7 +75,32 @@ if __name__ == '__teste__':
 	file_gr_transformed.write(str(pts_transformed))
 	file_gr_transformed.close()
 	img_ndarray = XX*255
-	salvar_imagem(img_ndarray)
+	ts = time.time()
+	nome_arquivo = str(ts).replace('.', '')
+	caminho_arquivo = 'samples/' + nome_arquivo + '.jpg'
+	salvar_imagem(img_ndarray, caminho_arquivo)
+	caminho_train = '/media/jones/datarec/lpr/dataset/versao_atual/preprocessados/train_moto'
+	imgs_paths = glob('%s/*.jpg' % caminho_train)
+	diretorio_saida = '/media/jones/datarec/lpr/dataset/versao_atual/preprocessados/samples_train_moto'
+	if not os.path.exists(diretorio_saida):
+		os.makedirs(diretorio_saida)
+	print('Searching for license plates using WPOD-NET')
+	for i,img_path in enumerate(imgs_paths):
+		Ivehicle = cv2.imread(img_path)
+		gt_img_path = img_path.replace('.jpg', '.txt')
+		data_item = []
+		L = readShapes(gt_img_path)
+		dim_w = 208
+		dim_h = 208
+		# data_item.append([file, L[0]])
+		data_item.append(img_path)
+		data_item.append(L[0])
+		model_stride = 16.0
+		XX, YY_output_map, pts_transformed = process_data_item(data_item, dim_w, dim_h, model_stride)
+		img_ndarray = XX * 255
+		nome_arquivo = os.path.basename(img_path)
+		caminho_completo_saida = os.path.abspath(os.path.join(diretorio_saida, nome_arquivo))
+		salvar_imagem(img_ndarray, caminho_completo_saida)
 	# data_item.append()
 
 
@@ -160,7 +183,7 @@ if __name__ == '__main__':
 
 		print('Iter. %d (of %d)' % (it+1,iterations))
 		print("Learning rate: ", K.get_value(model.optimizer.lr))
-		if not lr_ajustado and it > 0 and it % 100000 == 0:
+		if not lr_ajustado and it > 0 and it % 150000 == 0:
 			K.set_value(model.optimizer.lr, args.learning_rate / 10)
 			lr_ajustado = True
 		Xtrain,Ytrain = dg.get_batch(batch_size)

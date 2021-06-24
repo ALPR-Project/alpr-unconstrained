@@ -62,18 +62,22 @@ def flip_image_and_pts(I,pts):
 
 def augment_sample(I,pts, dim_w, dim_h):
 
-	maxsum,maxangle = 120,np.array([30.,30.,45.])
+	maxsum,maxangle = 60,np.array([20.,20.,25.])
 	angles = np.random.rand(3)*maxangle
 	if angles.sum() > maxsum:
 		angles = (angles/angles.sum())*(maxangle/maxangle.sum())
 
 	I = im2single(I)
 	iwh = getWH(I.shape)
+	# codigo original
+	# whratio = random.uniform(2., 4.)
+	# wsiz = random.uniform(dim * .2, dim * 1.)
 
 	# whratio = random.uniform(2.84, 3.07)
-	whratio = random.uniform(0.6, 0.9)
+	whratio = random.uniform(0.7, 1.2)
 	# whratio = 1.
-	wsiz = random.uniform(dim_w*.2, dim_w*1.)
+	# wsiz = random.uniform(dim_w*.2, dim_w*1.)
+	wsiz = random.uniform(dim_w * .3, dim_w * 0.7)
 	
 	hsiz = wsiz/whratio
 
@@ -89,10 +93,10 @@ def augment_sample(I,pts, dim_w, dim_h):
 
 	Iroi,pts = project(I,H,pts,dim_w, dim_h)
 	
-	hsv_mod = np.random.rand(3).astype('float32')
-	hsv_mod = (hsv_mod - .5)*.3
-	hsv_mod[0] *= 360
-	Iroi = hsv_transform(Iroi,hsv_mod)
+	# hsv_mod = np.random.rand(3).astype('float32')
+	# hsv_mod = (hsv_mod - .5)*.3
+	# hsv_mod[0] *= 360
+	# Iroi = hsv_transform(Iroi,hsv_mod)
 	Iroi = np.clip(Iroi,0.,1.)
 
 	pts = np.array(pts)
