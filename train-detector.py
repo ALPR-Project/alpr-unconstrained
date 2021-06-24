@@ -132,6 +132,7 @@ if __name__ == '__main__':
 	iterations 	= args.iterations
 	batch_size 	= args.batch_size
 	dim  = 208
+
 	if not isdir(outdir):
 		makedirs(outdir)
 

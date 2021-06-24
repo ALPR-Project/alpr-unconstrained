@@ -31,7 +31,7 @@ Moto (56) | 0.14 | 0.62 | 35 | 211 | 21
 Resultados do modelo CEIA 
 * Dropout 40%
 * Trainset carros
-* Ajuste de proporção de placa (2.84, 3.07
+* Ajuste de proporção de placa (2.84, 3.07)
 * Tamanho imagem (304,304)
 * Proporção placa/amostra (0.1, 0.5)
 
@@ -75,13 +75,20 @@ Resultados do modelo CEIA
 * Proporção placa/amostra (0.2, 1.)
 * modelo: modelo-ceia-ft-dpout-c-208_final
 
+* Trainset motos
+* Ajuste de proporção de placa (0.7, 1.2)
+* Tamanho imagem (208,208)
+* Proporção placa/amostra (0.2, 1.)
+* modelo: modelo-ceia-ft-dpout-m-208-3_best
+* threshold 0.4
+
 
 Modelo | Objeto | Precision | Recall | True Pos | False Pos | False Neg
  ------| ------------ | --------- | ------------- | --------- | ------------- | -------------
 Baseline | Carro (640) | 0.70 | 0.74 | 473 (74,3%) | 201 | 167 (26,1%)
 CEIA | Carro (640) | 0.56 | 0.90 | 578 (90,3%) | 446 | 62 (9,68%)
 Baseline | Moto (180) | 0.66 | 0.70 | 126 (70,0%) | 65 | 54 (30,0%)
-CEIA | Moto (180) | 0.21 | 0.67 | 121 (67,2%) | 443 | 59 (32,77%)
+CEIA | Moto (180) | 0.26 | 0.98 | 177 (98,3%) | 481 | 3 (1,66%)
 
 whratio = random.uniform(2, 3.07)
 wsiz = random.uniform(dim_w*.2,dim_w*1.)
