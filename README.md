@@ -75,7 +75,7 @@ Carro (640) | 0.56 | 0.90 | 578 (90,3%) | 446 | 62 (9,68%)
 
 Objeto | Precision | Recall | True Positive | False Positive | False Negative
 ------------ | --------- | ------------- | --------- | ------------- | -------------
-Moto (180) | 0.37 | 0.21 | 173 | 655 | 7 
+Moto (180) | 0.37 | 0.96 | 173 | 655 | 7 
 
 ### Tabela resumo melhor modelo 
 Resultados do modelo CEIA 
