@@ -143,7 +143,10 @@ def evaluate_precision_recall(ground_truth_frame, lista_preds_frame, iou_thresho
 	true_positive_prob = []
 	for index_pred, prediction in enumerate(lista_preds_frame):
 		pred_bbox = (prediction[0], prediction[1], prediction[2], prediction[3])
-		probability = prediction[5].item()
+		if isinstance(prediction[5], int):
+			probability = prediction[5]
+		else:
+			probability = prediction[5].item()
 		if index_pred in matched_prediction_indexes:
 			continue
 		is_prediction_true_positive = False
