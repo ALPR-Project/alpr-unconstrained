@@ -51,12 +51,7 @@ def loss(Ytrue, Ypred):
 		pts = (tf.concat([pts,pts_xy],3))
 
 	flags = tf.reshape(obj_probs_true,(b,h,w,1))
-	# res   = 1.*l1(pts_true*flags,pts*flags,(b,h,w,4*2))
-	# res  += 1.5*logloss(obj_probs_true,obj_probs_pred,(b,h,w,1))
-	# res  += 1.5*logloss(non_obj_probs_true,non_obj_probs_pred,(b,h,w,1))
-	res = 1. * l1(pts_true * flags, pts * flags, (b, h, w, 4 * 2))
-	logloss_obj = logloss(obj_probs_true, obj_probs_pred, (b, h, w, 1))
-	res += tf.where(tf.less(logloss_obj, 1.), 0.2 + logloss_obj, 1.5 * logloss_obj)
-	logloss_non_obj = logloss(non_obj_probs_true, non_obj_probs_pred, (b, h, w, 1))
-	res += tf.where(tf.less(logloss_non_obj, 1.), 0.3 + logloss_non_obj, 1.8 * logloss_non_obj)
+	res   = 1.*l1(pts_true*flags,pts*flags,(b,h,w,4*2))
+	res  += 1.*logloss(obj_probs_true,obj_probs_pred,(b,h,w,1))
+	res  += 1.*logloss(non_obj_probs_true,non_obj_probs_pred,(b,h,w,1))
 	return res

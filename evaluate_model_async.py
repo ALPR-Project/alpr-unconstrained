@@ -1,4 +1,4 @@
-
+import statistics
 import argparse
 import sys, os
 import keras
@@ -41,6 +41,8 @@ class IndicadoresValidacao:
 		self.labeled_samples_total = 0
 		self.labeled_samples_total_car = 0
 		self.labeled_samples_total_moto = 0
+		self.false_positive_probability = []
+		self.true_positive_probability = []
 
 
 	def precision_recall(self):
@@ -77,6 +79,12 @@ class IndicadoresValidacao:
 
 	def imprimir_total_amostras(self):
 		print('total amostras: %s | total amostras carros: %s | total amostras moto: %s  ' % (self.labeled_samples_total, self.labeled_samples_total_car, self.labeled_samples_total_moto))
+
+	def imprimir_probabilidades(self):
+		print('True positives:  %f media  %f std  | False positives %f media %f std ' %
+			  (statistics.mean(self.true_positive_probability), statistics.stdev(self.true_positive_probability),
+			   statistics.mean(self.false_positive_probability), statistics.stdev(self.false_positive_probability)))
+
 
 	def imprmir_ftn_all(self):
 		self.imprimir_total_amostras()
@@ -131,10 +139,17 @@ def evaluate_precision_recall(ground_truth_frame, lista_preds_frame, iou_thresho
 	matched_ground_truth_indexes = []
 	matched_prediction_indexes = []
 	true_positive = 0
+	false_positive_prob = []
+	true_positive_prob = []
 	for index_pred, prediction in enumerate(lista_preds_frame):
 		pred_bbox = (prediction[0], prediction[1], prediction[2], prediction[3])
+		if isinstance(prediction[5], int):
+			probability = prediction[5]
+		else:
+			probability = prediction[5].item()
 		if index_pred in matched_prediction_indexes:
 			continue
+		is_prediction_true_positive = False
 		for index_gt, ground_truth in enumerate(ground_truth_frame):
 			gt_bbox = (ground_truth[0], ground_truth[1], ground_truth[2], ground_truth[3])
 			iou = calc_iou(gt_bbox, pred_bbox)
@@ -142,9 +157,14 @@ def evaluate_precision_recall(ground_truth_frame, lista_preds_frame, iou_thresho
 				true_positive += 1
 				matched_ground_truth_indexes.append(index_gt)
 				matched_prediction_indexes.append(index_pred)
+				is_prediction_true_positive = True
+		if not is_prediction_true_positive:
+			false_positive_prob.append(probability)
+		else:
+			true_positive_prob.append(probability)
 	false_negative = len(ground_truth_frame) - true_positive
 	false_positive = len(lista_preds_frame) - true_positive
-	return true_positive, false_positive, false_negative
+	return true_positive, false_positive, false_negative, true_positive_prob, false_positive_prob
 
 
 
@@ -246,10 +266,12 @@ def validar_lp_model(entrada_diretorio_validacao, diretorio_saida, wpod_net):
 			for bbox_gt in ground_truth_frame:
 				cv2.rectangle(car_rgb_np, (bbox_gt[0], bbox_gt[1]), (bbox_gt[2], bbox_gt[3]), bbox_color_gt, thickness)  # filled
 			cv2.imwrite('%s/%s_lp_car.png' % (diretorio_saida, bname_image_file), car_rgb_np)
-		true_positive_frame, false_positive_frame, false_negative_frame = evaluate_precision_recall(ground_truth_frame, lista_preds_frame, 0.5)
+		true_positive_frame, false_positive_frame, false_negative_frame, true_positive_prob_frame, false_positive_prob_frame = evaluate_precision_recall(ground_truth_frame, lista_preds_frame, 0.5)
 		indicadores_validacao.true_positive += true_positive_frame
 		indicadores_validacao.false_positive += false_positive_frame
 		indicadores_validacao.false_negative += false_negative_frame
+		indicadores_validacao.true_positive_probability.extend(true_positive_prob_frame)
+		indicadores_validacao.false_positive_probability.extend(false_positive_prob_frame)
 		if class_object == 0:
 			indicadores_validacao.true_positive_car += true_positive_frame
 			indicadores_validacao.false_positive_car += false_positive_frame
@@ -268,6 +290,7 @@ def validar_lp_model(entrada_diretorio_validacao, diretorio_saida, wpod_net):
 	print('COCO mAP: '+str(mAP_coco))
 	indicadores_validacao.imprmir_ftn_all()
 	indicadores_validacao.imprimir_precision_recall_all()
+	indicadores_validacao.imprimir_probabilidades()
 	return mAP_pascal, mAP_pascal_all_points, mAP_coco, indicadores_validacao
 
 

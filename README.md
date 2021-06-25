@@ -65,6 +65,17 @@ Objeto | Precision | Recall | True Pos | False Pos | False Neg
 ------------ | --------- | -------- | --------- | ------------- | -------------
 Carro (640) | 0.56 | 0.90 | 578 (90,3%) | 446 | 62 (9,68%)
 
+### Treino 25/06
+* modelo modelo-ceia-ft-dpout-m-208-5
+* Trainset motos
+* Ajuste de proporção de placa (0.7, 1.2)
+* Tamanho imagem (208,208)
+* Proporção placa/amostra (0.3, 0.7)
+* 3.*logloss(non_obj_probs_true,non_obj_probs_pred,(b,h,w,1))
+
+Objeto | Precision | Recall | True Positive | False Positive | False Negative
+------------ | --------- | ------------- | --------- | ------------- | -------------
+Moto (180) | 0.37 | 0.96 | 173 | 655 | 7 
 
 ### Tabela resumo melhor modelo 
 Resultados do modelo CEIA 
