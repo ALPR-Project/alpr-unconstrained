@@ -77,6 +77,23 @@ Objeto | Precision | Recall | True Positive | False Positive | False Negative
 ------------ | --------- | ------------- | --------- | ------------- | -------------
 Moto (180) | 0.37 | 0.96 | 173 | 655 | 7 
 
+### Treino 26/06
+* alpr-br-model-fs-dpout-moto-char-1_backup
+* Trainset motos com ao menos 4 caracteres 
+* Ajuste de proporção de placa (0.7, 1.2)
+* Tamanho imagem (208,208)
+* Proporção placa/amostra (0.3, 0.7)
+
+
+Objeto | Precision | Recall | True Positive | False Positive | False Negative
+------------ | --------- | ------------- | --------- | ------------- | -------------
+Moto (130) | 0.91 | 0.98 | 128 | 13 | 2
+Moto (180) | 0.81 | 0.84 | 152 | 35 | 28
+
+True positives:  0.997747 media  0.023183 std  | False positives 0.273685 media 0.395876 std
+
+
+
 ### Tabela resumo melhor modelo 
 Resultados do modelo CEIA 
 * Dropout 40%
