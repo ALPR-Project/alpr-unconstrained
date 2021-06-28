@@ -62,7 +62,7 @@ def flip_image_and_pts(I,pts):
 
 def augment_sample(I,pts, dim_w, dim_h):
 
-	maxsum,maxangle = 60,np.array([20.,20.,25.])
+	maxsum,maxangle = 50,np.array([20.,20.,25.])
 	angles = np.random.rand(3)*maxangle
 	if angles.sum() > maxsum:
 		angles = (angles/angles.sum())*(maxangle/maxangle.sum())
@@ -73,11 +73,14 @@ def augment_sample(I,pts, dim_w, dim_h):
 	# whratio = random.uniform(2., 4.)
 	# wsiz = random.uniform(dim * .2, dim * 1.)
 
+	# carro
 	# whratio = random.uniform(2.84, 3.07)
-	whratio = random.uniform(0.7, 1.2)
+	# wsiz = random.uniform(dim_w * .3, dim_w * 0.7)
 	# whratio = 1.
 	# wsiz = random.uniform(dim_w*.2, dim_w*1.)
-	wsiz = random.uniform(dim_w * .2, dim_w * 1.0)
+	# moto
+	whratio = random.uniform(0.7, 1.2)
+	wsiz = random.uniform(dim_w * .3, dim_w * 0.7)
 	
 	hsiz = wsiz/whratio
 
