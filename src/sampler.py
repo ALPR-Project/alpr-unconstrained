@@ -77,7 +77,7 @@ def augment_sample(I,pts, dim_w, dim_h):
 	whratio = random.uniform(0.7, 1.2)
 	# whratio = 1.
 	# wsiz = random.uniform(dim_w*.2, dim_w*1.)
-	wsiz = random.uniform(dim_w * .3, dim_w * 0.7)
+	wsiz = random.uniform(dim_w * .2, dim_w * 1.0)
 	
 	hsiz = wsiz/whratio
 
