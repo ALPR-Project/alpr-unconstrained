@@ -92,6 +92,22 @@ Moto (180) | 0.81 | 0.84 | 152 | 35 | 28
 
 True positives:  0.997747 media  0.023183 std  | False positives 0.273685 media 0.395876 std
 
+### Treino 01/07
+* modelo-ceia-ft-dpout-c-208-chars-3_backup
+* Trainset carros com ao menos 4 caracteres 
+* Ajuste de proporção de placa (2.84, 3.07)
+* Tamanho imagem (208,208)
+* Proporção placa/amostra (0.3, 0.7)
+* Dropout 0.8
+
+
+Objeto | Precision | Recall | True Positive | False Positive | False Negative
+------------ | --------- | ------------- | --------- | ------------- | -------------
+Carro (640) | 0.45 | 0.86 | 550 | 661 | 90
+
+
+True positives:  0.983463 media  0.063782 std  | False positives 0.749641 media 0.219385 std
+
 
 
 ### Tabela resumo melhor modelo 

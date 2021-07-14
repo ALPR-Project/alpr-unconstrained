@@ -74,13 +74,13 @@ def augment_sample(I,pts, dim_w, dim_h):
 	# wsiz = random.uniform(dim * .2, dim * 1.)
 
 	# carro
-	# whratio = random.uniform(2.84, 3.07)
-	# wsiz = random.uniform(dim_w * .3, dim_w * 0.7)
+	whratio = random.uniform(2.84, 3.07)
+	wsiz = random.uniform(dim_w * .3, dim_w * 0.7)
 	# whratio = 1.
 	# wsiz = random.uniform(dim_w*.2, dim_w*1.)
 	# moto
-	whratio = random.uniform(0.7, 1.2)
-	wsiz = random.uniform(dim_w * .3, dim_w * 0.7)
+	# whratio = random.uniform(0.7, 1.2)
+	# wsiz = random.uniform(dim_w * .3, dim_w * 0.7)
 	
 	hsiz = wsiz/whratio
 

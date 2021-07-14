@@ -81,9 +81,10 @@ class IndicadoresValidacao:
 		print('total amostras: %s | total amostras carros: %s | total amostras moto: %s  ' % (self.labeled_samples_total, self.labeled_samples_total_car, self.labeled_samples_total_moto))
 
 	def imprimir_probabilidades(self):
-		print('True positives:  %f media  %f std  | False positives %f media %f std ' %
-			  (statistics.mean(self.true_positive_probability), statistics.stdev(self.true_positive_probability),
-			   statistics.mean(self.false_positive_probability), statistics.stdev(self.false_positive_probability)))
+		if len(self.true_positive_probability)>0 and len(self.false_positive_probability)>0:
+			print('True positives:  %f media  %f std  | False positives %f media %f std ' %
+				  (statistics.mean(self.true_positive_probability), statistics.stdev(self.true_positive_probability),
+				   statistics.mean(self.false_positive_probability), statistics.stdev(self.false_positive_probability)))
 
 
 	def imprmir_ftn_all(self):
