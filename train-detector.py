@@ -184,7 +184,7 @@ if __name__ == '__main__':
 
 		print('Iter. %d (of %d)' % (it+1,iterations))
 		print("Learning rate: ", K.get_value(model.optimizer.lr))
-		if not lr_ajustado and it > 0 and it % 60000 == 0:
+		if not lr_ajustado and it > 0 and it % 150000 == 0:
 			K.set_value(model.optimizer.lr, args.learning_rate / 10)
 			lr_ajustado = True
 		Xtrain,Ytrain = dg.get_batch(batch_size)
